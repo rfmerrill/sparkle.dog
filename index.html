@@ -32,10 +32,10 @@
 <!-- Social preview. The rationale is below the tags, not above them; see there. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="qrdrop">
-<meta property="og:url" content="https://share.stan-ely.com/">
+<meta property="og:url" content="https://sparkle.dog/">
 <meta property="og:title" content="qrdrop — send a file device to device">
 <meta property="og:description" content="Scan a code, send a file. End-to-end encrypted, straight between the two devices. Nothing to install, no account, and nothing in between ever holds a readable copy.">
-<meta property="og:image" content="https://share.stan-ely.com/og.png">
+<meta property="og:image" content="https://sparkle.dog/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -57,13 +57,13 @@
   trustworthy, and the one place a stranger forms an opinion of it before
   ever loading the page.
 
-  https://share.stan-ely.com is substituted by scripts/build-site.mjs from the same constant
+  https://sparkle.dog is substituted by scripts/build-site.mjs from the same constant
   that writes the CNAME file, so the deployed domain has one home rather than
   a copy here that goes stale the day it moves. og:image must be absolute:
   crawlers fetch it without a document base, so a relative path silently
   yields no image at all.
 
-  og:url is https://share.stan-ely.com/ rather than https://share.stan-ely.com plus a slash, because it is the
+  og:url is https://sparkle.dog/ rather than https://sparkle.dog plus a slash, because it is the
   one tag here that differs between the two builds this template produces: it
   must name the page being previewed, and /edge/ is a different page from /.
   og:image deliberately does not follow it -- both builds show the same card,
@@ -175,10 +175,9 @@
       <h1>qrdrop</h1>
       <span class="build-stamp">
         <a class="build" href="https://github.com/stan-ely/qrdrop/releases/tag/v0.6.0" title="Release v0.6.0, 2026-09-18T18:15:23+05:30." target="_blank" rel="noopener noreferrer">v0.6.0</a>
-        <a id="to-edge" href="/edge/" aria-label="Switch to the edge build" target="_blank" rel="noopener noreferrer">edge</a>
-        <a id="to-stable" href="/" aria-label="Switch to the stable build" target="_blank" rel="noopener noreferrer">stable</a>
       </span>
     </div>
+    <b>Built from stan-ely/qrdrop tag v0.6.0, commit 4815185b215a6f22fd3920100d791b29156e31b3.</b>
     <p class="tagline">Scan a code, send a file, device to device. Nothing in between ever holds a readable copy.</p>
 
     <!--
