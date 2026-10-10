@@ -1,0 +1,40 @@
+{
+  "name": "qrdrop",
+  "short_name": "qrdrop",
+  "description": "Send a file straight from one device to another. A QR code carries the key; the file goes over WebRTC; nothing in between ever holds a readable copy.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#f7f6f3",
+  "background_color": "#f7f6f3",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "share_target": {
+    "action": "share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "file",
+          "accept": [
+            "*/*"
+          ]
+        }
+      ]
+    }
+  },
+  "channel": "stable"
+}

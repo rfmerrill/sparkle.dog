@@ -1,0 +1,954 @@
+
+:root {
+  /*
+   * WITHOUT THIS THE DARK PALETTE AT THE FOOT OF THIS FILE NEVER RUNS ON
+   * ANDROID, and that was as true of the deployed site as of the app.
+   *
+   * A page that never declares color-scheme is treated as light-only.
+   * Android WebView, and Chrome with force-dark on, respond by
+   * ALGORITHMICALLY DARKENING it -- a post-render pixel transform that
+   * inverts the light theme and is invisible to CSS and JS, which go on
+   * reporting prefers-color-scheme: light. So the careful dark values below
+   * sat unused while a machine-generated approximation shipped in their
+   * place, and nothing measurable said so: on a device in night mode the
+   * computed styles read light, the screenshot came back dark, and the two
+   * disagreed only because one of them was a photograph.
+   *
+   * Declaring both schemes says the page handles this itself. The browser
+   * stops transforming, prefers-color-scheme starts telling the truth, and
+   * the block at the end of this file is what paints.
+   *
+   * It belongs here rather than only in the site stylesheet because the
+   * component ships standalone and has to take its own scheme with it -- and
+   * because this also decides how the UA draws form controls and scrollbars.
+   */
+  color-scheme: light dark;
+
+  /* ---- space: 4/8/12/16/24/32/48px, as rem ---- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+
+  /* ---- radius ---- */
+  --r-sm: 0.5rem;
+  --r-md: 0.75rem;
+  --r-lg: 1rem;
+  --r-full: 999px;
+
+  /* ---- layout ----
+   *
+   * --col is the reading column, matching the cap site/styles.css puts on
+   * main. It moved here when the site began sharing the viewport grid with the
+   * component: two files claiming a different idea of "the column" is the same
+   * drift this whole file exists to prevent.
+   *
+   * --bar-h and --head-h used to sit here, described as "the two rows that
+   * bracket the scrollable middle". They named a layout that no longer exists:
+   * the action bar sizes to its buttons and the page chrome to its content,
+   * and neither stylesheet ever read either token. A token nothing consumes is
+   * worse than no token, because the next reader sizes something to it and
+   * changes nothing.
+   *
+   * --tap is the one that replaced them, and it IS consumed: the floor for
+   * anything a finger has to hit. 44px is the figure both platform guidelines
+   * land on. .btn already computes to ~50px without help; every other control
+   * in the component (the Copy chip, the fps select, the manual-code input)
+   * was between 28px and 36px, which is a miss on a phone and was never
+   * measured because check-layout.mjs asks whether a button is ON the screen,
+   * not whether it can be hit.
+   */
+  --col: 34rem;
+  --tap: 2.75rem;
+
+  /* ---- stacking ----
+   *
+   * A named ladder rather than integers scattered across rules. There was no
+   * z-index anywhere in this codebase before the dialog layer, which is the
+   * best possible moment to decide the order once: anything competing for the
+   * same plane is a bug in one of these two values, not a reason to type 9999.
+   *
+   * The dialog itself needs no token -- showModal() promotes it to the
+   * browser's top layer, which sits above every z-index on the page by
+   * definition. --z-dialog is here for the non-modal fallback path only.
+   */
+  --z-bar: 10;
+  --z-dialog: 20;
+  --z-toast: 30;
+
+  /* ---- type ---- */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs--1: 0.8125rem;
+  --fs-0: 1rem;
+  --fs-1: 1.125rem;
+  --fs-2: 1.375rem;
+  --fs-3: 1.875rem;
+  --lh-tight: 1.25;
+  --lh-body: 1.55;
+
+  /* ---- colour: light (default) ----
+   *
+   * --text on --surface is 17.4:1 and on --bg is 16.1:1 -- both nowhere near
+   * the 4.5:1 floor, which leaves headroom to keep --text a near-black rather
+   * than a pure one.
+   *
+   * --muted is the one built to a budget rather than to taste: #5f5d57 is the
+   * darkest warm gray that still reads as "muted" against #6b6b66 (the old
+   * value, which was never checked) while clearing 4.5:1 on both --surface
+   * (6.58:1) and --bg (6.09:1). A lighter muted would drift under the floor
+   * on --bg specifically, since --bg is the darker of the two.
+   *
+   * --accent is deepened from the old #b8563a to #a8462d specifically so
+   * white text on it (--accent-text, used on .btn.primary) clears 4.5:1
+   * (measured 5.87:1) -- the old value sat closer to 4:1 and failed for small
+   * button labels. The same #a8462d against --surface is 5.87:1, past the
+   * 3:1 floor for the large-text/UI-border uses (the step rail's active
+   * segment, the SAS "these differ" note's accent underline).
+   */
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-raised: #f1efe9;
+  /* The other direction from --surface-raised, and the axis this palette was
+   * missing. The card, the code block, the text input and the sheet were all
+   * --surface inside a 1px --line, so nothing led and nothing receded -- four
+   * things at one weight, which is the flat, undifferentiated look that reads
+   * as unfinished however carefully the spacing is set. Fields go below the
+   * card they sit in; the card keeps --surface and its shadow. --muted holds
+   * 6.0:1 here and --text 16.7:1, so nothing is bought at the cost of the
+   * contrast budget the rest of this block is written to. */
+  --surface-sunken: #f2f0ea;
+  --text: #1a1a19;
+  --muted: #5f5d57;
+  --line: #e3e1db;
+  --line-strong: #8f8d85;
+  --accent-rgb: 168, 70, 45;
+  --accent: rgb(var(--accent-rgb));
+  --accent-hover: #8f3a24;
+  --accent-text: #ffffff;
+  --accent-soft: rgba(var(--accent-rgb), 0.12);
+  --ok: #1f6e46;
+  --ok-soft: rgba(31, 110, 70, 0.12);
+  --bad: #a33328;
+  --bad-soft: rgba(163, 51, 40, 0.12);
+  --warn: #8a5a00;
+  --warn-soft: rgba(138, 90, 0, 0.12);
+
+  /* ---- camera and QR surfaces: deliberately NOT themed ----
+   *
+   * These three are the only colours here that must stay the same in light
+   * and dark, so they sit outside the palette above and are never restated
+   * in the dark block below. A QR is read by a camera, not by a person: a
+   * scanner binarizes what it sees and needs dark modules on a light quiet
+   * zone whatever the page around them is doing, and the viewfinder's
+   * brackets have to stay legible over an arbitrary camera image. Wiring
+   * any of them to --surface/--text would make dark mode quietly unreadable
+   * to a scanner while looking perfectly fine to whoever changed it.
+   *
+   * They are tokens rather than the literals they replaced in styles.js for
+   * the same reason as everything else in this file: --qr-quiet-zone alone
+   * had two hand-kept copies (.qr and .beam-stage). */
+  --qr-quiet-zone: #ffffff;
+  --scan-bg: #000000;
+  --scan-line: #ffffff;
+
+  /* ---- elevation ---- */
+  --shadow-1: 0 1px 2px rgba(20, 18, 14, 0.06), 0 1px 1px rgba(20, 18, 14, 0.04);
+  --shadow-2: 0 8px 24px rgba(20, 18, 14, 0.10), 0 2px 6px rgba(20, 18, 14, 0.06);
+
+  /* ---- motion ----
+   *
+   * The last axis that was still magic numbers scattered through styles.js.
+   * Unlike colour and shadow, motion does not retheme -- a transition is the
+   * same length on a dark background as on a light one -- so these are
+   * declared once here and never restated in the dark block, which also
+   * keeps that block honest about what actually changes with the theme.
+   *
+   * The reduced-motion query in styles.js overrides all of them at once with
+   * transition-duration: 0s, so these are the "motion is wanted" values
+   * only; do not try to encode the reduced case here. */
+  --dur-fast: 0.05s;    /* .btn:active nudge -- must feel instant */
+  --dur-base: 0.15s;    /* border and background on hover */
+  --dur-slow: 0.2s;     /* the progress bar's fill, which is being watched */
+  --dur-slower: 0.28s;  /* a screen's contents settling in; see screen-in */
+  --dur-shimmer: 1.4s;  /* one pass of the indeterminate bar */
+
+  /* Every animation here moves something INTO place and stops -- a screen
+   * arriving, a rail segment filling, a toast rising. None of them move
+   * something out. So the curve wants to be fast at the start and settle at
+   * the end, which `ease-out` names but flattens too early to read as
+   * deliberate; this is the same shape with a longer tail. Transitions that
+   * run in both directions (hover, the button press) keep plain easing, since
+   * an asymmetric curve on a reversible change feels wrong going back. */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* ---- focus ---- */
+  --focus-ring: 0 0 0 3px rgba(var(--accent-rgb), 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /*
+     * Every pair below is re-measured against the dark surfaces, not just
+     * colour-inverted -- a light-mode ratio says nothing about the same hex
+     * pair on a dark background. --muted lightens to #b1b0aa (7.55:1 on
+     * --surface, 8.30:1 on --bg); --accent lightens to #e08662 so
+     * --accent-text (now dark, #17171a, matching the old scheme of a dark
+     * label on a light-ish accent chip) still clears 4.5:1 (6.61:1 measured).
+     */
+    --bg: #16161a;
+    --surface: #1f1f24;
+    --surface-raised: #262630;
+    /* Below --bg as well as below --surface. In light mode a sunken field can
+     * sit between the page and the card; here the page is already the darkest
+     * thing on screen, so an inset field has to go past it or it reads as
+     * raised. --muted holds 8.7:1 on this. */
+    --surface-sunken: #131317;
+    --text: #ecebe8;
+    --muted: #b1b0aa;
+    --line: #33333a;
+    --line-strong: #77747c;
+    --accent-rgb: 224, 134, 98;
+    --accent: rgb(var(--accent-rgb));
+    --accent-hover: #e89a7c;
+    --accent-text: #17171a;
+    --accent-soft: rgba(var(--accent-rgb), 0.18);
+    --ok: #7fc39b;
+    --ok-soft: rgba(127, 195, 155, 0.16);
+    --bad: #f0968a;
+    --bad-soft: rgba(240, 150, 138, 0.16);
+    --warn: #e3b34d;
+    --warn-soft: rgba(227, 179, 77, 0.16);
+
+    /*
+     * Black shadows read as mud on a dark surface -- there is no darker tone
+     * for them to imply depth against. Elevation here leans on --line-strong
+     * borders (already applied by .card etc. in both themes) plus these
+     * faint, mostly-flat shadows instead of the pronounced light-mode ones.
+     */
+    --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.2);
+    --shadow-2: 0 4px 16px rgba(0, 0, 0, 0.35);
+
+    --focus-ring: 0 0 0 3px rgba(var(--accent-rgb), 0.45);
+  }
+}
+
+.sheet {
+  max-inline-size: min(var(--col), calc(100vw - var(--sp-6)));
+  max-block-size: min(80dvh, calc(100dvh - var(--sp-6)));
+  inline-size: 100%;
+  margin: auto;
+  padding: var(--sp-5);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  flex-direction: column;
+  gap: var(--sp-4);
+  font: var(--fs-0)/var(--lh-body) var(--font-sans);
+}
+
+.sheet[open] { display: flex; }
+
+.sheet::backdrop { background: rgb(0 0 0 / 0.45); }
+
+/*
+ * On a finger, a sheet comes up from the bottom.
+ *
+ * Not decoration. A centred dialog on a phone puts its buttons in the middle
+ * of the screen, which is the part of a large phone a thumb reaches last --
+ * and this component's sheets are where the beam Accept lives, so "hard to
+ * reach" is the same failure the body/actions split exists to prevent, moved
+ * into the one box that is exempt from the card's layout rules.
+ *
+ * margin-block-start: auto is what does it. The base rule sets margin: auto,
+ * which centres on both axes; overriding only the block-start edge pushes it
+ * down while leaving the inline centring alone, so this stays one declaration
+ * rather than a repositioning that has to restate the horizontal case.
+ *
+ * The bottom corners go square because the sheet now meets the edge of the
+ * screen, and a rounded corner against a screen edge reads as a rendering
+ * fault rather than as a radius. env(safe-area-inset-bottom) keeps the last
+ * control clear of the home indicator: a dialog is outside the flow that
+ * site/styles.css's main padding covers, so it has to say this itself.
+ *
+ * pointer: coarse, not a width query, for the reason the block at the foot of
+ * this file gives: a tablet is as wide as a laptop and still has a thumb.
+ */
+@media (pointer: coarse) {
+  .sheet {
+    max-inline-size: 100%;
+    max-block-size: 85dvh;
+    margin-block-start: auto;
+    margin-block-end: 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    border-block-end: none;
+    padding-block-end: calc(var(--sp-5) + env(safe-area-inset-bottom));
+  }
+}
+
+.btn.ghost {
+  border-color: transparent;
+  background: none;
+  color: var(--muted);
+}
+.btn.ghost:hover { background: var(--surface-raised); color: var(--text); }
+/**
+ * Page chrome only -- the h1, tagline, and footer disclosure that stay in the
+ * light DOM (see site/index.html). Everything that used to style the
+ * transfer UI itself (sections, buttons, the QR box, the SAS display, the
+ * progress bar, and so on) moved into <qr-drop>'s own shadow root in
+ * src/web/element.js, because shadow DOM does not inherit a page stylesheet
+ * and the component needs to look right with none of this loaded at all.
+ *
+ * The design tokens this file reads (--bg, --surface, --sp-*, --fs-*, ...)
+ * used to be a `:root { ... }` block pasted here verbatim from the `:host`
+ * block in src/web/element.js's TEMPLATE -- two copies of the same list that
+ * could only drift apart, never be checked against each other. They are
+ * generated instead: scripts/build-site.mjs prepends `tokensCSS(':root')`
+ * (src/web/tokens.js) to this file's contents when it writes
+ * site/dist/styles.css, so this stylesheet only ever consumes tokens, never
+ * redefines them. Do not add a `:root` block back here -- add the token to
+ * tokens.js, where both this page and the component pick it up from.
+ */
+
+* { box-sizing: border-box; }
+
+/*
+ * The page is exactly the viewport and does not scroll. This is where 100dvh
+ * belongs and the only place it appears: <qr-drop> sizes to the row this grid
+ * gives it (see the :host comment in src/web/styles.js for why the component
+ * must not claim the viewport itself).
+ *
+ * dvh rather than vh. On iOS Safari 100vh is the EXPANDED viewport -- the
+ * height the page would have if the URL bar were hidden -- so a layout built
+ * on it puts its last row underneath the browser chrome, which is precisely
+ * the "the button is off the bottom of my phone" bug this work exists to fix,
+ * reintroduced by the fix. The vh line above it is the fallback for engines
+ * that do not know dvh, where being a little too tall beats being unstyled.
+ *
+ * env(safe-area-inset-*) for the notch and the home indicator: without it the
+ * bottom row of a fixed-height layout sits under the gesture bar on any recent
+ * iPhone, which is the same class of unreachable as being off-screen.
+ */
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: var(--fs-0)/var(--lh-body) var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  block-size: 100vh;
+  block-size: 100dvh;
+  overflow: hidden;
+}
+
+/*
+ * auto / 1fr / auto: the heading and the footer take what they need, and the
+ * component takes the rest. minmax(0, 1fr) rather than 1fr because a grid
+ * track refuses to shrink below its content's min-content height otherwise --
+ * the single most common reason a "fixed height" layout keeps growing anyway.
+ */
+main {
+  max-inline-size: var(--col);
+  margin: 0 auto;
+  padding:
+    calc(var(--sp-5) + env(safe-area-inset-top))
+    calc(var(--sp-4) + env(safe-area-inset-right))
+    calc(var(--sp-4) + env(safe-area-inset-bottom))
+    calc(var(--sp-4) + env(safe-area-inset-left));
+  block-size: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--sp-4);
+}
+
+/*
+ * Wide and short: the reading column gives way so the component can use two.
+ *
+ * 34rem is a measure chosen for reading prose, and it is right for almost every
+ * window. It is wrong for a laptop in landscape, where the constraint is
+ * vertical and there are several hundred horizontal pixels going spare — the
+ * card ends up with an inner scrollbar beside an empty margin, which is the
+ * worst of both.
+ *
+ * THIS QUERY MUST MATCH the one in src/web/styles.js exactly. A media query
+ * cannot read a custom property, so the two conditions cannot be derived from a
+ * shared token the way every other shared value in this project is; they are
+ * two copies, and if they disagree the component lays out in two columns inside
+ * a column too narrow to hold them.
+ */
+@media (min-width: 48rem) and (max-height: 62rem) {
+  main { max-inline-size: 62rem; }
+}
+
+/*
+ * Short window: the page chrome gets out of the way.
+ *
+ * On a 1280x620 laptop the header and footer were spending about 190px of 620
+ * on a title, a tagline and two links, leaving the transfer UI to scroll
+ * inside what was left. The tagline is the first thing to go -- it sells the
+ * app to someone deciding whether to use it, and by the time the window is
+ * this shape they are using it. The h1 stays, because a page with no name is
+ * disorienting in a way a page with no strapline is not.
+ */
+@media (max-height: 46rem) {
+  .tagline { display: none; }
+  main {
+    padding-block: calc(var(--sp-3) + env(safe-area-inset-top))
+      calc(var(--sp-3) + env(safe-area-inset-bottom));
+    gap: var(--sp-3);
+  }
+  footer { font-size: var(--fs--1); }
+}
+
+header { min-inline-size: 0; }
+
+h1 {
+  margin: 0;
+  font-size: var(--fs-2);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+}
+
+/*
+ * The wordmark and the build stamp, on one line.
+ *
+ * `nowrap` and no shrinking, deliberately: this page is a fixed-height grid,
+ * and the whole reason the stamp is up here rather than in the footer is that
+ * the h1's line box is already taller than 13px text, so it costs no height at
+ * all. Allowed to wrap it would cost a line at exactly the width where there
+ * is least to spare. It fits -- "qrdrop" and the longest stamp
+ * (`edge · 0000000 | stable`) are about 240px together, against 312px of
+ * content width at 320px, the narrowest viewport this is checked at.
+ *
+ * Baseline rather than centre: the stamp is type, the wordmark is type, and
+ * sitting them on a shared baseline is what makes the small one read as an
+ * annotation of the big one rather than as a separate thing parked nearby.
+ */
+.masthead {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+/*
+ * The build stamp: which build this is, and a link to the other one.
+ *
+ * A readout, not navigation, and styled to say so. No icon and no pill --
+ * both of which it had when it lived in the footer's link row, where it read
+ * as two more buttons -- just --muted text at the row's own size. The only
+ * controls in this header are the "How it works" chip and the card below;
+ * neither should have to compete with a version number.
+ *
+ * min-inline-size: 0 lets it be the thing that gives way if the masthead ever
+ * is squeezed, rather than pushing the h1 out of the page.
+ */
+.build-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-inline-size: 0;
+  font-size: var(--fs--1);
+}
+
+/* Self-contained now that this is not inside .meta: colour, hover and focus
+ * were all inherited from `.meta a` before the move, and a link with no
+ * :focus-visible of its own is invisible to a keyboard. The hover cue is an
+ * underline as well as the colour shift, since --accent alone is the one cue
+ * a person who cannot distinguish it would miss. */
+.build-stamp a {
+  padding: var(--sp-1);
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--dur-base);
+}
+.build-stamp a:hover { color: var(--accent); text-decoration: underline; }
+.build-stamp a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* The channel cross-link, one of two.
+ *
+ * They are hidden with `display: none` and shown again per channel, rather
+ * than one of them carrying `hidden` in the markup. An author `display` beats
+ * the UA stylesheet's rule for [hidden], so a stylesheet that hides with the
+ * attribute and reveals with `display` is one rule away from showing both --
+ * the failure this project has already had three times over (.card laying out
+ * all eight screens at once, .sheet rendering both closed dialogs in flow).
+ * Saying it in one place, in both directions, has no such edge: neither link
+ * is visible unless a rule here names its channel.
+ *
+ * Which also means these are the rules to check if both cross-links ever
+ * appear at once: that is data-channel arriving as a literal __CHANNEL__,
+ * matching neither selector -- except the build would have failed first, on
+ * the leftover-placeholder guard in scripts/build-site.mjs. */
+#to-edge,
+#to-stable { display: none; }
+:root[data-channel='stable'] #to-edge { display: inline-flex; }
+:root[data-channel='edge'] #to-stable { display: inline-flex; }
+
+/* A rule between the two rather than a separator character: `edge · ceb67e3`
+ * already contains a middle dot, and a second glyph beside it reads as noise
+ * rather than as a division.
+ *
+ * Drawn as a pseudo-element sized in em, not as a border-left on the link. A
+ * border spans the whole padded box, and that padding is a tap target rather
+ * than a visual height -- so the rule came out 26px tall beside 13px text and
+ * read as a bracket around the cross-link instead of a divider between two
+ * things. The link is inline-flex, so this is a flex item and `align-self`
+ * centres it. */
+#to-edge::before,
+#to-stable::before {
+  content: '';
+  align-self: center;
+  inline-size: 1px;
+  block-size: 1em;
+  margin-inline-end: var(--sp-2);
+  background: var(--line);
+}
+
+/* Edge is the development build and says so in the one way a header can. Not
+ * red: nothing is wrong, and a page about trust that cries wolf in its own
+ * chrome spends credibility it needs elsewhere. --warn is legible against both
+ * themes' backgrounds (src/web/tokens.js defines it for each), and the label
+ * beside it already reads "edge", so the colour is reinforcement rather than
+ * the only carrier of the meaning -- which is what keeps it working for a
+ * reader who cannot see it. */
+:root[data-channel='edge'] .build { color: var(--warn); }
+:root[data-channel='edge'] .build:hover { color: var(--warn); }
+
+/* `edge · ceb67e3` is three space-separated tokens, so without this it is free
+ * to break after "edge" or after the dot -- a build identifier split across
+ * two lines, which is worse than a wide one. Stable's `v0.3.1` has no break
+ * opportunity in it and does not need the rule; the stamp shares one class
+ * across both channels, so it is stated once here. */
+.build { white-space: nowrap; }
+
+.tagline {
+  margin: var(--sp-2) 0 0;
+  color: var(--muted);
+  font-size: var(--fs--1);
+}
+
+/*
+ * The three-step orientation strip between the tagline and the transfer UI
+ * (see the comment on the <ol> in site/index.html for why it exists at all).
+ *
+ * One step per line at every width, which is not the first thing tried. A
+ * wrapping row looked right in the abstract and is wrong here: `main` is
+ * capped at 34rem, which is a column narrow enough that the three labels land
+ * two-then-one even on a desktop, and a numbered list whose 3 sits alone
+ * under a full row reads as a layout accident rather than as three steps.
+ * Widening the column for the sake of this row would be the tail wagging the
+ * dog -- 34rem is a measure chosen for reading. Three short lines it is.
+ *
+ * The list markers are switched off and replaced with a CSS counter, so the
+ * numbers can be chips without a second element inside every <li>.
+ *
+ * Deliberately quieter than the card below it and louder than .tagline above:
+ * --text on the step labels (this is instruction, and --muted twice in a row
+ * turns the whole header into grey mush) but at --fs--1, so it never competes
+ * with the buttons, which are the thing the reader is meant to reach.
+ */
+.how {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  counter-reset: step;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs--1);
+  color: var(--text);
+}
+
+.how li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  counter-increment: step;
+}
+
+/* --accent-soft rather than --accent: a filled accent chip three times over
+ * reads as three buttons, and there are real buttons a few hundred pixels
+ * below that need to own that colour. The chip is 1.5em square so it tracks
+ * --fs--1 rather than pinning a pixel size that stops matching the day the
+ * type scale moves. */
+.how li::before {
+  content: counter(step);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: var(--r-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.85em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Which of the two orientation affordances is shown. This block must stay
+ * BELOW `.how`'s own rule above: both set `display` on the same selector at
+ * the same specificity, so source order decides, and written above it these
+ * rules lose silently and the page renders the strip and the button at once.
+ *
+ * The collapsed form -- button, no strip -- is the DEFAULT, and the strip is
+ * the enhancement for viewports with room to spare. That way round on purpose:
+ * a layout whose default assumes space and trims when cramped is how the
+ * transfer UI ended up below the fold to begin with.
+ *
+ * Room to spare means BOTH axes. Tall enough that ~90px of orientation copy is
+ * not the difference between seeing Accept and not, and wide enough that the
+ * column is not already cramped. The page had a width-only query before, which
+ * is exactly why a short laptop window -- wide, so it passed -- rendered the
+ * beam screen's Accept button 197px below the fold.
+ */
+#how-open { display: inline-flex; }
+.how { display: none; }
+
+@media (min-height: 46rem) and (min-width: 26rem) {
+  #how-open { display: none; }
+  .how { display: flex; }
+}
+
+/*
+ * This rule used to be `qr-drop { display: block }`, which quietly beat the
+ * component's own `:host { display: flex }` and left the card overflowing its
+ * grid row by 300px with no clue why.
+ *
+ * A rule in the host page always wins over a `:host` rule for the same
+ * property -- specificity does not come into it; the page is simply the more
+ * authoritative side of the shadow boundary. That makes `display` on a custom
+ * element a property the page must either leave alone or set deliberately, and
+ * an undated `display: block` from before the component had a layout of its
+ * own is neither.
+ *
+ * It is not deleted, because the element must still be a block before its
+ * definition loads -- an unregistered custom element is inline, and an inline
+ * grid row collapses. min-block-size: 0 for the usual grid-item reason.
+ */
+qr-drop {
+  min-block-size: 0;
+}
+qr-drop:not(:defined) {
+  display: block;
+}
+
+footer { min-inline-size: 0; }
+
+/*
+ * The one button style the page chrome owns. Deliberately quieter than
+ * anything inside <qr-drop>: these open explanations, and an explanation must
+ * never compete with "Send a file" or with Accept. The component's own buttons
+ * are styled in its shadow root and inherit none of this.
+ *
+ * Styled as a ghost button (transparent, border, muted text) to match
+ * .btn.ghost in the component. The ghost button rules are generated from
+ * src/web/styles.js at build time via scripts/build-site.mjs, so there is
+ * one definition of the ghost button style. This rule adds page-specific
+ * display properties and applies those styles to the chip element.
+ */
+.chip {
+  display: inline-flex;
+  font: inherit;
+  font-size: var(--fs--1);
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  padding: var(--sp-1) var(--sp-3);
+  cursor: pointer;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: start;
+  transition: color var(--dur-base), border-color var(--dur-base);
+}
+.chip:hover { color: var(--text); border-color: var(--line-strong); }
+.chip:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/*
+ * The page's dialogs. `max-block-size` plus a scrolling body is the whole
+ * point of moving this copy here: the disclosure list is long, and a dialog is
+ * the one box on a non-scrolling page that is allowed to scroll inside itself.
+ * At 200% zoom this is what keeps the words reachable instead of clipped.
+ *
+ * No z-index. showModal() promotes a <dialog> to the browser's top layer,
+ * which is above every stacking context on the page by definition -- that is
+ * the reason this is a real <dialog> and not a positioned div, along with the
+ * focus trap and Escape that would otherwise be hand-written.
+ *
+ * The .sheet rules are generated from src/web/styles.js at build time via
+ * scripts/build-site.mjs, so there is one definition of the dialog style,
+ * not two hand-kept copies. This rule provides page-chrome-only customizations.
+ */
+.sheet h2 {
+  margin: 0;
+  font-size: var(--fs-1);
+  line-height: var(--lh-tight);
+}
+.sheet h2:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.sheet-body {
+  overflow-y: auto;
+  min-block-size: 0;
+}
+.sheet-body ul { padding-left: 1.1rem; color: var(--muted); font-size: var(--fs--1); margin: 0; }
+.sheet-body li { margin-bottom: var(--sp-2); }
+.sheet-body strong { color: var(--text); font-weight: 600; }
+.sheet-body .how { display: flex; margin-block-start: 0; }
+.sheet form { margin: 0; }
+footer summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: var(--fs--1);
+}
+footer ul { padding-left: 1.1rem; color: var(--muted); font-size: var(--fs--1); }
+footer li { margin-bottom: var(--sp-2); }
+footer strong { color: var(--text); font-weight: 600; }
+
+/*
+ * The three links at the very bottom -- source, feedback, author. Scoped to
+ * .meta rather than styled as a bare `a { }` rule, because the security
+ * disclosure above is prose that may one day want links of its own, and those
+ * should read as links inside a paragraph, not as another row of chrome.
+ *
+ * Resting colour is --muted, not --accent: this row is the least important
+ * thing on a page whose whole purpose is the transfer above it, and --muted is
+ * measured (see tokens.js) to clear 4.5:1 on --bg in both themes, so quiet
+ * here does not mean unreadable. --accent, a raised pill, and a 1px lift all
+ * arrive on hover, borrowed from .btn in src/web/styles.js so that a link in
+ * the page and a button in the component answer a pointer the same way.
+ *
+ * The links are pills rather than underlined text because the underline was
+ * the only thing distinguishing them and it crashed through the descenders at
+ * --fs--1. .meta is pulled out by one --sp-2 (and the rule below pushed back
+ * in by the same amount) so that the pills' padding does not indent the row
+ * relative to the column of text above it -- the pill is a hover affordance,
+ * not a change to where the page's left edge is.
+ */
+.meta {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  margin: var(--sp-5) calc(var(--sp-2) * -1) 0;
+  padding-top: var(--sp-4);
+  font-size: var(--fs--1);
+}
+
+/* A hairline that starts at the text column's left edge and dissolves before
+ * it reaches the right. A full-width `border-top` drew a hard line under a
+ * page that has no other hard lines in the light DOM, and read as the start of
+ * a second section rather than the quiet end of this one. */
+.meta::before {
+  content: '';
+  position: absolute;
+  inset: 0 var(--sp-2) auto;
+  height: 1px;
+  background: linear-gradient(to right, var(--line-strong), var(--line) 45%, transparent);
+}
+
+.meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--r-full);
+  color: var(--muted);
+  text-decoration: none;
+  transition: color var(--dur-base), background var(--dur-base), transform var(--dur-fast);
+}
+.meta a:hover { color: var(--accent); background: var(--surface-raised); transform: translateY(-1px); }
+.meta a:active { transform: translateY(0); }
+.meta a:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* Who made this, set apart from what it is -- the two project links are one
+ * thought and the byline is another, and a gap says so without a separator
+ * character. Dropped at the narrow breakpoint, where the row wraps and an
+ * auto margin would strand the name alone on its own line. */
+.meta .who { margin-left: auto; }
+
+/* aria-hidden in the markup: every label already says what the link is, so
+ * the icon is decoration and a screen reader announcing it would be reading
+ * the same word twice. Sized in em so it tracks --fs--1, and drawn in
+ * currentColor so the hover and focus rules above only ever have to name one
+ * colour.
+ *
+ * The width, height, fill and stroke here are also spelled out as attributes
+ * on each <svg> in the markup, which is duplication on purpose. Presentation
+ * attributes lose to any rule in a stylesheet, so these lines still decide
+ * what is drawn; the attributes only matter when this file has not arrived,
+ * and an inline <svg> with no size falls back to 300x150 filled black. That
+ * is not a degraded footer, it is three enormous black shapes down the page,
+ * and it happened -- see the note on the hashed filename in
+ * scripts/build-site.mjs for how the stylesheet went missing in the first
+ * place. Belt and braces, because only one of the two can be fixed by a
+ * deploy. */
+.meta svg {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  transition: opacity var(--dur-base);
+}
+.meta a:hover svg { opacity: 1; }
+
+/* The disclosure above shares the row's hover and focus language, so the two
+ * halves of the footer read as one thing rather than as a styled row bolted
+ * under an unstyled summary. */
+footer summary { transition: color var(--dur-base); }
+footer summary:hover { color: var(--text); }
+footer summary:focus-visible {
+  outline: none;
+  border-radius: var(--r-sm);
+  box-shadow: var(--focus-ring);
+}
+
+/*
+ * THE ENV() TERMS ARE NOT DECORATION IN HERE. This block sets `padding`, the
+ * shorthand, so it replaced all four sides of the rule above it -- including
+ * the safe-area insets -- on exactly the devices that have insets. It went
+ * unnoticed because viewport-fit was not set either, so every inset was 0 and
+ * losing them cost nothing. site/index.html now opts in, and from that moment
+ * a shorthand here without env() would put the footer under the home
+ * indicator on every phone narrower than 30rem, which is most of them.
+ *
+ * Any future rule that sets main's padding has to carry these terms too. That
+ * is the trap this comment exists to close, and it is the same shape as the
+ * "anywhere a rule sets display, say the hiding again" note in
+ * src/web/styles.js: a shorthand quietly resetting what a longhand elsewhere
+ * was relying on.
+ */
+@media (max-width: 30rem) {
+  main {
+    padding:
+      calc(var(--sp-5) + env(safe-area-inset-top))
+      calc(var(--sp-3) + env(safe-area-inset-right))
+      calc(var(--sp-6) + env(safe-area-inset-bottom))
+      calc(var(--sp-3) + env(safe-area-inset-left));
+  }
+}
+
+/*
+ * A phone, in either orientation: the page chrome gets out of the component's
+ * way entirely.
+ *
+ * The max-height: 46rem block above already does half of this for any short
+ * window, laptop included. What it does not catch is the commonest phone
+ * there is -- 390x844 is 24.4rem by 52.8rem, so it is not short, it is
+ * narrow, and it was keeping the tagline and the whole footer link row on the
+ * device with the least room to spare. Together those are ~110px of a 844px
+ * screen spent on a strapline and three links, while the card underneath is
+ * the thing that has to fit a camera, a filename and two buttons.
+ *
+ * Written as two comma-separated queries rather than one `(A or B)`: the or
+ * keyword is Media Queries Level 4 and the comma has meant the same thing
+ * since Level 2. The second arm is the landscape phone, 844x390, which is
+ * short by this file's other measure but wide enough to miss the first arm.
+ *
+ * pointer: coarse gates the first two arms, so a 390px-wide DESKTOP window --
+ * someone with a browser docked to a quarter of a monitor -- keeps its chrome.
+ * That window is narrow by choice and can be widened; a phone cannot.
+ *
+ * THE THIRD ARM HAS NO POINTER GATE, and it is there because that reasoning
+ * runs out below 26rem. At 360px the beam screen's card copy scrolled by 74px
+ * in both engines with a mouse -- the progress bar clipped off the bottom --
+ * and no amount of "the window can be widened" makes a clipped progress bar
+ * the right thing to render. The layout has already collapsed to its phone
+ * shape by then; keeping a two-line strapline and a footer link row above it
+ * is spending 112px the card is visibly short of. Found by adding a 360px
+ * viewport to check-layout.mjs after a real device turned out to report
+ * innerWidth 360, not the 390 that file had always assumed was the narrow
+ * end.
+ *
+ * WHAT STAYS, and it is the part worth checking on a real device: the
+ * masthead keeps the h1 and the build stamp, and the footer keeps the
+ * #protect-open chip. The security disclosure is that chip, not one of the
+ * links in .meta -- .meta is Source, Feedback and the byline, all of which
+ * are navigation away from a page someone is in the middle of using. Hiding
+ * the one thing that explains what this tool does and does not protect would
+ * be the wrong 68px to save, on the one screen where trust matters most.
+ */
+@media (pointer: coarse) and (max-width: 30rem),
+       (min-width: 48rem) and (max-height: 30rem),
+       (max-width: 26rem) {
+  .tagline { display: none; }
+  .meta { display: none; }
+}
+
+/* The same bargain src/web/styles.js strikes for the component: someone who
+ * has asked the OS to reduce motion still gets every state change, told in
+ * colour, with nothing moving to tell it. */
+@media (prefers-reduced-motion: reduce) {
+  .meta a, .meta svg, footer summary { transition-duration: 0s; }
+  .meta a:hover { transform: none; }
+}
+
+/*
+ * A phone on its side: the page chrome stops being three stacked rows.
+ *
+ * The arm above already hides the tagline and the .meta links here, and that
+ * was not close to enough. Measured on the built tree at 800x360, before this
+ * rule: the header ran 61px (the masthead, then "How it works" on its own
+ * line beneath it), the footer 30px, and main's own padding and two row gaps
+ * another 48 -- 139px of 360, 39% of the screen, spent on chrome, leaving the
+ * card 221px out of which 32 is its padding and 64 its action bar. The
+ * component was laying out its content inside 111px.
+ *
+ * The axis those rows are stacked on is the only one this shape is short of.
+ * There are 800 horizontal pixels here and the masthead uses about 240 of
+ * them, so the two chips go BESIDE the wordmark instead of under it: one
+ * chrome row, and the footer's grid row disappears with it. That is ~72px
+ * handed straight to the card, which is the difference between a beam screen
+ * that scrolls three times its own height and one that mostly fits.
+ *
+ * Only the landscape arm, deliberately -- not the two portrait ones above.
+ * A 360px-wide phone has the opposite problem: the horizontal axis is the
+ * scarce one, and folding a footer up beside the wordmark there would wrap
+ * the masthead, which .masthead's own comment explains is the one thing it
+ * must not do.
+ *
+ * Nothing is hidden by this rule. The h1, the build stamp, "How it works"
+ * and the security disclosure are all still on the screen, still in the tab
+ * order, in the same reading order -- header content, then footer content,
+ * then the card. They have only stopped each claiming a row of a viewport
+ * that has three rows to give.
+ */
+@media (min-width: 48rem) and (max-height: 30rem) {
+  main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  /* Baseline, for the reason .masthead sits its stamp on one: these are three
+   * pieces of type on one line, and a shared baseline is what makes them read
+   * as a single masthead rather than as controls parked near a title. */
+  header {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: var(--sp-4);
+  }
+  /* The masthead gives way before the chip does. It is `space-between` inside
+   * a track it no longer owns, so without a basis of its own it would keep
+   * stretching and push the chip off the row. */
+  .masthead { flex: 0 1 auto; min-inline-size: 0; }
+
+  footer { grid-area: 1 / 2; }
+  qr-drop { grid-area: 2 / 1 / 3 / 3; }
+}
